@@ -10,6 +10,7 @@ require 'php_serialize'
 require 'miro'
 require 'mysql2'
 require File.expand_path(File.dirname(__FILE__) + "/base.rb")
+require File.expand_path(File.dirname(__FILE__) + "/powerapple.rb")
 
 class ImportScripts::DiscuzX < ImportScripts::Base
 
@@ -24,6 +25,10 @@ class ImportScripts::DiscuzX < ImportScripts::Base
   AVATAR_DIR            = '/uc_server/data/avatar' #相对上面DISCUZX_BASE_DIR的路径
   ATTACHMENT_DIR        = '/data/attachment/forum' #相对上面DISCUZX_BASE_DIR的路径
   AUTHORIZED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'zip', 'rar', 'pdf', 'doc']
+
+
+  include ImportScripts::Powerapple
+
 
   def initialize
     super

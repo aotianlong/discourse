@@ -10,6 +10,7 @@ module ImportScripts
     end
 
     def download_url(url)
+      puts "downloading: #{url}"
       path = "/tmp/download"
       begin
         Timeout.timeout 20.seconds do

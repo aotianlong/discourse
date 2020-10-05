@@ -15,7 +15,7 @@ require File.expand_path(File.dirname(__FILE__) + "/powerapple.rb")
 
 class ImportScripts::DiscuzX < ImportScripts::Base
 
-  DISCUZX_DB = "dzx" #你原来的discuz数据库名
+  DISCUZX_DB = "dzx2" #你原来的discuz数据库名
   DB_TABLE_PREFIX = 'pre_' #你原来的discuz数据库表前缀
   BATCH_SIZE = 1000
   ORIGINAL_SITE_PREFIX = "bbs.powerapple.com" # without http(s):// 你的discuz原始URL
@@ -35,7 +35,7 @@ class ImportScripts::DiscuzX < ImportScripts::Base
     super
 
     @client = Mysql2::Client.new(
-      host: "127.0.0.1", #你的discuz数据库IP
+      host: "mysql", #你的discuz数据库IP
       username: "root", #你的discuz数据库用户名
       password: "papp123", #你的discuz数据库密码
       database: DISCUZX_DB
@@ -69,7 +69,11 @@ class ImportScripts::DiscuzX < ImportScripts::Base
 
   # add the prefix to the table name
   def table_name(name = nil)
-    DB_TABLE_PREFIX + name
+    if name =~ /^ucenter_/
+      name
+    else
+      DB_TABLE_PREFIX + name
+    end
   end
 
   # find which group members can be granted as admin

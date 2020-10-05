@@ -228,7 +228,20 @@ class ImportScripts::DiscuzX < ImportScripts::Base
               if body_background || header_background || blocktitle_background || content_background
                 profile_background = first_exists(header_background, body_background, content_background, blocktitle_background)
                 card_background = first_exists(content_background, body_background, header_background, blocktitle_background)
-                upload = create_upload(newmember.id, File.join(DISCUZX_BASE_DIR, profile_background), File.basename(profile_background))
+
+
+                # aotianlong
+                # upload = create_upload(newmember.id, File.join(DISCUZX_BASE_DIR, profile_background), File.basename(profile_background))
+                file = File.join("https://bbs.powerapple.com", profile_background)
+                downloaded_file = download_url file
+                if downloaded_file
+                  upload = create_upload(newmember.id, downloaded_file, File.basename(profile_background))
+                else
+                  upload = nil
+                end
+                # upload = create_upload(newmember.id, file, File.basename(profile_background))
+                # end aotianlong
+
                 if upload
                   newmember.user_profile.upload_profile_background upload
                 else
@@ -1026,6 +1039,12 @@ class ImportScripts::DiscuzX < ImportScripts::Base
     end
 
     filename = File.join(DISCUZX_BASE_DIR, ATTACHMENT_DIR, row['attachment_path'])
+
+    # aotianlong:
+    filename = download_url(File.join("https://bbs.powerapple.com", ATTACHMENT_DIR, row['attachment_path']))
+    return nil if filename.nil?
+    # end aotianlong
+
     unless File.exists?(filename)
       puts "Attachment file doesn't exist: #{filename}"
       return nil

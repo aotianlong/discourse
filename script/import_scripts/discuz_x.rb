@@ -9,6 +9,7 @@
 require 'php_serialize'
 require 'miro'
 require 'mysql2'
+require "httparty"
 require File.expand_path(File.dirname(__FILE__) + "/base.rb")
 require File.expand_path(File.dirname(__FILE__) + "/powerapple.rb")
 
@@ -27,7 +28,7 @@ class ImportScripts::DiscuzX < ImportScripts::Base
   AUTHORIZED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'zip', 'rar', 'pdf', 'doc']
 
 
-  include ImportScripts::Powerapple
+  prepend ImportScripts::Powerapple
 
 
   def initialize
@@ -140,8 +141,7 @@ class ImportScripts::DiscuzX < ImportScripts::Base
     total_count = mysql_query("SELECT count(*) count FROM #{user_table};").first['count']
 
     batches(BATCH_SIZE) do |offset|
-      results = mysql_query(
-        "SELECT u.uid id, u.username username, u.email email, u.groupid group_id,
+      sql = "SELECT u.uid id, u.username username, u.email email, u.groupid group_id,
                     su.regdate regdate, su.password password_hash, su.salt salt,
                     s.regip regip, s.lastip last_visit_ip, s.lastvisit last_visit_time, s.lastpost last_posted_at, s.lastsendmail last_emailed_at,
                     u.emailstatus email_confirmed, u.avatarstatus avatar_exists,
@@ -158,7 +158,9 @@ class ImportScripts::DiscuzX < ImportScripts::Base
                LEFT JOIN #{home_table} h USING(uid)
               ORDER BY u.uid ASC
               LIMIT #{BATCH_SIZE}
-             OFFSET #{offset};")
+             OFFSET #{offset};"
+      puts sql
+      results = mysql_query(sql)
 
       break if results.size < 1
 
@@ -186,8 +188,11 @@ class ImportScripts::DiscuzX < ImportScripts::Base
           bio_raw: first_exists((user['bio'] && CGI.unescapeHTML(user['bio'])), user['sightml'], user['spacenote']).strip[0, 3000],
           location: first_exists(user['address'], (!user['resideprovince'].blank? ? [user['resideprovince'],  user['residecity'], user['residedist'], user['residecommunity']] : [user['birthprovince'],  user['birthcity'], user['birthdist'], user['birthcommunity']]).reject { |location|location.blank? }.join(' ')),
           post_create_action: lambda do |newmember|
+            puts
+            puts "create new user #{newmember.username}"
             if user['avatar_exists'] == (1) && newmember.uploaded_avatar_id.blank?
               path, filename = discuzx_avatar_fullpath(user['id'])
+              puts "avatar: #{path}, #{filename}"
               if path
                 begin
                   upload = create_upload(newmember.id, path, filename)

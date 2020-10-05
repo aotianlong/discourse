@@ -300,7 +300,25 @@ class ImportScripts::DiscuzX < ImportScripts::Base
           end
           category.topic.posts.first.update_attribute(:raw, raw)
           if !row['icon'].empty?
-            upload = create_upload(Discourse::SYSTEM_USER_ID, File.join(DISCUZX_BASE_DIR, ATTACHMENT_DIR, '../common', row['icon']), File.basename(row['icon']))
+
+            # aotianlong:
+            # 论坛的图标
+            icon = row['icon']
+            if icon =~ /^https?:\/\//
+              icon_url = icon
+            else
+              icon_url = "https://bbs.powerapple.com/common/#{icon}"
+            end
+            icon_path = download_url(icon_url)
+            if icon_path
+              upload = create_upload(Discourse::SYSTEM_USER_ID, icon_path, "icon.jpg")
+            else
+              upload = nil
+            end
+            # upload = create_upload(Discourse::SYSTEM_USER_ID, File.join(DISCUZX_BASE_DIR, ATTACHMENT_DIR, '../common', row['icon']), File.basename(row['icon']))
+            # end aotianlong
+
+
             if upload
               category.logo_url = upload.url
               # FIXME: I don't know how to get '/shared' by script. May change to Rails.root

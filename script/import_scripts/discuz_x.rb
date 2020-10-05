@@ -865,7 +865,18 @@ class ImportScripts::DiscuzX < ImportScripts::Base
         attachment_file = $1
 
         filename = File.basename(attachment_file)
-        upload = create_upload(user.id, File.join(DISCUZX_BASE_DIR, attachment_file), filename)
+
+
+        # aotianlong
+        file = download_url(File.join("https://bbs.powerapple.com", attachment_file))
+        if file
+          upload = create_upload(user.id, file, filename)
+        else
+          upload = nil
+        end
+        # upload = create_upload(user.id, File.join(DISCUZX_BASE_DIR, attachment_file), filename)
+        # end aotianlong
+
         unless upload
           fail_count += 1
           next
